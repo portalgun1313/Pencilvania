@@ -9,6 +9,9 @@ fps = 60
 #define variables
 tile_size = 32
 game_over = 0
+xroom = 0
+yroom = 1
+zonen = 0
 
 DISPLAYSURF = pygame.display.set_mode((768, 768))
 pygame.display.set_caption('Pencilvania')
@@ -35,16 +38,8 @@ e1posx = 0
 
 #Setting Map Coords
 xroom = 0
-yroom = "TR2"
+yroom = 0
 zonen = 0
-
-class JumpRing(pygame.sprite.Sprite):
-  def __init__(self,x,y):
-    pygame.sprite.Sprite.__init__(self)
-    self.image = pygame.image.load("jumpring.png")
-    self.rect = self.image.get_rect()
-    self.rect.x = x
-    self.rect.y = y
 
 class Player():
   def __init__(self,x,y):
@@ -59,6 +54,7 @@ class Player():
     self.vel_x = 0
     self.vel_y = 0
     self.jumped = False
+    self.canJump = 0
 
   def reset(self, x, y):
     img = pygame.image.load("player1.png")
@@ -72,29 +68,45 @@ class Player():
     self.vel_x = 0
     self.vel_y = 0
     self.jumped = False
-    self.touchingGround = 0
+    self.canJump = 0
 
   def update(self, game_over):
-
-
+    
     if game_over == 0: 
+    
+      
+      
+      #get key presses
+      key = pygame.key.get_pressed()
+      if key[pygame.K_SPACE] and self.jumped == False and self.canJump == 1:
+        self.vel_y = -12
+        self.jumped = True
+        self.canJump = 0
+      if not key[pygame.K_SPACE]:
+        self.jumped = False
+      if key[pygame.K_a]:
+        self.vel_x = -12
+      if key[pygame.K_d]:
+        self.vel_x = 12
   
         #acceleration stuff too cool for you to understand
       self.vel_x *= 0.5
       if self.vel_x < 0.5:
         self_vel_x = 0
       dx = self.vel_x
-      self.vel_y += 3.6
+      self.vel_y += 1
       if self.vel_y > 30:
         self.vel_y = 30
       dy = self.vel_y
       #check collision
       for tile in world.tile_list:
           #check for collision in x direction
-        if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+        if tile[1].colliderect(self.rect.x + self.vel_x, self.rect.y, self.width, self.height):
+          if dx != 0:
+            self.rect.x -= abs(dx)/dx
           dx = 0
           #check for collision in y direction
-        if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+        if tile[1].colliderect(self.rect.x, self.rect.y + self.vel_y, self.width, self.height):
             #check if below the ground i.e. jumping
           if self.vel_y < 0:
             dy = tile[1].bottom - self.rect.top
@@ -102,30 +114,16 @@ class Player():
           elif self.vel_y >= 0:
             dy = tile[1].top - self.rect.bottom
             self.vel_y = 0
-            self.touchingGround = 1
+            self.canJump = 1
+          
 
-      #get key presses
-      key = pygame.key.get_pressed()
-      if key[pygame.K_SPACE] and self.jumped == False and self.touchingGround == 1:
-        self.vel_y = -25
-        self.jumped = True
-        self.touchingGround = 0
-      if not key[pygame.K_SPACE]:
-        self.jumped = False
-      if key[pygame.K_a]:
-        self.vel_x = -25
-      if key[pygame.K_d]:
-        self.vel_x = 25
-
-        #check for collision with enemies
+        #check for collision with enemies & spikes
         if pygame.sprite.spritecollide(self, enemy1_group, False):
           game_over = -1
         if pygame.sprite.spritecollide(self, spike_group, False):
           game_over = -1
         if pygame.sprite.spritecollide(self, jumpring_group, False):
-          self.touchingGround = 1
-          print("pinus")
-        #check for collision with enemies
+          self.canJump = 1
 
       
 
@@ -256,10 +254,10 @@ class Enemy(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.x = x
     self.rect.y = y
-    self.width = 32
-    self.height = 16
     self.move_direction = 4
     self.move_counter = 0
+    self.width = 32
+    self.height = 16
     
   def update(self):
     self.rect.x += self.move_direction
@@ -268,9 +266,10 @@ class Enemy(pygame.sprite.Sprite):
       self.move_direction *= -1
       self.move_counter *= -1
     for tile in world.tile_list:
-      if tile[1].colliderect(self.rect.x + self.move_direction, self.rect.y, self.width, self.height):
-        self.move_direction *= -1
-        self.move_counter *= -1   
+          #check for collision in x direction
+        if tile[1].colliderect(self.rect.x + self.move_direction, self.rect.y, self.width, self.height):
+          self.move_direction *= -1
+          self.move_counter *= -1
 
 
 
@@ -285,9 +284,43 @@ class Spike(pygame.sprite.Sprite):
     self.move_direction = 4
     self.move_counter = 0
 
+class JumpRing(pygame.sprite.Sprite):
+  def __init__(self,x,y):
+    pygame.sprite.Sprite.__init__(self)
+    img = pygame.image.load("jumpring.png")
+    self.image = pygame.transform.scale(img, (tile_size,tile_size))
+    self.rect = self.image.get_rect()
+    self.rect.x = x
+    self.rect.y = y
+world_data = [
+      ["0s",0,0,"0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","s1","0r"],
+      ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1","0b"],
+      ["0d",0,0,0,0,"j","j","j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1","0b"],
+      ["0d",0,0,0,0,"s1","s1","s1",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
+      ["0d",0,0,"0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a",0,0,0,0,0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,"0a","0b"],
+      ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,0,0,"0a","0a","0a","0a","0a",0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,"0a","0a",0,0,0,0,0,0,0,"0b"],
+      ["0d",0,0,0,0,"0a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
+      ["0d","0a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
+      ["0d","0a","0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
+      ["0d","0a","0a","0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
+      ["0d","0a","0a","0a","0a",0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,0,"0a",0,0,0,"0a","0a",0,0,"e1",0,0,0,0,"0b"],
+      ["0d",0,0,0,0,0,0,0,0,"0a",0,0,0,0,"0a","0a","0a","0a","0a","0a","0a","0a","0a","0p"],
+      ["0d",0,0,0,0,0,"0a","0a","0a","s1","s1","s1","s1","s1","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
+      ["0d",0,0,0,0,"0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
+      ["0d",0,0,0,"0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
+      ["0t","0a","0a","0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"]
+      ]
 if zonen == 0:
   if xroom == 0:
-    if yroom == "TR1":
+    if yroom == 1:
       world_data = [
       ["0s",0,0,"0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","s1","0r"],
       ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1","0b"],
@@ -314,7 +347,7 @@ if zonen == 0:
       ["0d",0,0,0,"0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
       ["0t","0a","0a","0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"]
       ]
-    if yroom == "TR2":
+    elif yroom == 2:
       world_data = [
       ["0s","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0r"],
       ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
