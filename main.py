@@ -12,6 +12,7 @@ game_over = 0
 xroom = 0
 yroom = 2
 zonen = 0
+levelTime = 0
 
 DISPLAYSURF = pygame.display.set_mode((768, 768))
 pygame.display.set_caption('Pencilvania')
@@ -37,8 +38,8 @@ enemyMoving = False
 e1posx = 0
 
 #Setting Map Coords
-xroom = 0
-yroom = 1
+xroom = 1
+yroom = 2
 level_coords = [xroom,yroom]
 zonen = 0
 
@@ -115,6 +116,7 @@ class Player():
           elif self.vel_y >= 0:
             dy = tile[1].top - self.rect.bottom
             self.vel_y = 0
+            self.jumped = False
             self.canJump = 1
           
 
@@ -125,11 +127,14 @@ class Player():
           game_over = -1
         if pygame.sprite.spritecollide(self, jumpring_group, False):
           self.canJump = 1
-        if pygame.sprite.spritecollide(self, topexit_group, True):
+        if pygame.sprite.spritecollide(self, topexit_group, False):
           game_over = 1
           yroom += 1
           player.reset(64,640)
-          print(yroom)
+        if pygame.sprite.spritecollide(self, rightexit_group, False):
+          game_over = 1
+          xroom += 1
+          player.reset(64,640)
       
 
 
@@ -246,6 +251,9 @@ class World():
             if tile == "tx":
               topexit = TopExit(col_count * tile_size, row_count * tile_size)
               topexit_group.add(topexit)
+            if tile == "rx":
+              rightexit = RightExit(col_count * tile_size, row_count * tile_size)
+              rightexit_group.add(rightexit)
           col_count += 1
         row_count += 1
 
@@ -309,12 +317,14 @@ class TopExit(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.x = x 
     self.rect.y = y
-
-if game_over == 1:
-  enemy1_group = pygame.sprite.Group.clear()
-  spike_group = pygame.sprite.Group.clear()
-  jumpring_group = pygame.sprite.Group.clear()
-  topexit_group = pygame.sprite.Group.clear()
+class RightExit(pygame.sprite.Sprite):
+  def __init__(self,x,y):
+    pygame.sprite.Sprite.__init__(self)
+    img = pygame.image.load("horizontalexit.png")
+    self.image = pygame.transform.scale(img, (tile_size,tile_size*2))
+    self.rect = self.image.get_rect()
+    self.rect.x = x 
+    self.rect.y = y
 
 def getLevel(zonen,level_coords):
     if level_coords == [0,1]:
@@ -351,8 +361,8 @@ def getLevel(zonen,level_coords):
           ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
           ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
           ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
-          ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,"0b"],
-          ["0d",0,0,0,0,0,0,0,0,"j","0a","0a","0a","0a",0,0,0,0,0,0,0,0,0,"0b"],
+          ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,"rx"],
+          ["0d",0,0,0,0,0,0,0,0,"j","0a","0a","0a","0a",0,0,0,0,0,0,0,0,0,0],
           ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,"0p",0,0,0,0,0,0,"0p","0b"],
           ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,"0p",0,0,0,0,0,0,"0p","0b"],
           ["0d",0,0,0,0,0,0,0,0,"j",0,0,0,0,0,"0p",0,0,0,0,0,0,"0p","0b"],
@@ -371,6 +381,60 @@ def getLevel(zonen,level_coords):
           ["0d",0,0,0,0,0,0,0,0,"j","0p","e1","e1","e1",0,0,0,0,0,0,0,0,0,"0p"],
           ["0t","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a"]
           ]
+    elif level_coords == [1,2]:
+          world_data = [
+          ["0s","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","tx",0,"0r"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1",0,"j","0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1","j",0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1",0,"j","0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1","j",0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1",0,"j","0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"s1","j",0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"j","0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,"s1","s1",0,0,0,"s1","s1",0,0,0,"s1",0,0,"0a",0,0,0,0,"0p"],
+          ["0d","j","j","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a",0,0,0,0,0,0,0,"0p"],
+          ["0d","j","j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d","j","j",0,"j",0,"j",0,"j",0,"j",0,"j",0,"j",0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,"e1",0,"e1","e1","e1",0,0,0,0,"e1",0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a","0a",0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,"0p"],
+          ["0d",0,0,0,"s1","s1",0,0,0,0,0,0,"0a",0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,"j",0,"0p","0p","s1",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0t","0a","0a","0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"]
+          ]
+    elif level_coords == [1,3]:
+      world_data = [
+          ["0s","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0r"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0t","0a","0a","0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"]
+          ]
     return world_data
 
 
@@ -381,6 +445,7 @@ enemy1_group = pygame.sprite.Group()
 spike_group = pygame.sprite.Group()
 jumpring_group = pygame.sprite.Group()
 topexit_group = pygame.sprite.Group()
+rightexit_group = pygame.sprite.Group()
 
 def draw_grid():
   for line in range(0,25):
@@ -401,6 +466,8 @@ while True:
 
   clock.tick(fps)
 
+  levelTime += 1
+
   DISPLAYSURF.blit(area0background,(0,0))
   draw_grid()
 
@@ -410,6 +477,7 @@ while True:
   spike_group.draw(DISPLAYSURF)
   jumpring_group.draw(DISPLAYSURF)
   topexit_group.draw(DISPLAYSURF)
+  rightexit_group.draw(DISPLAYSURF)
 
   player_data = player.update(game_over,xroom,yroom)
   game_over = player_data[0]
@@ -422,8 +490,10 @@ while True:
     spike_group = pygame.sprite.Group()
     jumpring_group = pygame.sprite.Group()
     topexit_group = pygame.sprite.Group()
+    rightexit_group = pygame.sprite.Group()
     world_data = getLevel(zonen,level_coords)
     world = World(world_data)
+    print("Level complete in",round(levelTime/fps,1),"seconds")
   
   world.draw()
 
