@@ -13,8 +13,6 @@ clock = pygame.time.Clock()
 fps = 60
 
 #define variables
-pygame.mixer.music.load("area0music.mp3")
-pygame.mixer.music.play(1,0.0,0)
 tile_size = 32
 game_over = 0
 levelTime = 0
@@ -79,6 +77,7 @@ class Player():
     self.canJump = 0
     self.health = 100
     self.hasImmunity = False
+    self.respawnPoint = [64,704]
 
   def update(self, game_over, xroom, yroom):
     
@@ -146,19 +145,19 @@ class Player():
         if pygame.sprite.spritecollide(self, topexit_group, False):
           game_over = 1
           yroom += 1
-          player.reset(64,640)
+          player.reset(self.rect.x,640)
         if pygame.sprite.spritecollide(self, bottomexit_group, False):
           game_over = 1
           yroom -= 1
-          player.reset(64,640)
+          player.reset(self.rect.x,64)
         if pygame.sprite.spritecollide(self, rightexit_group, False):
           game_over = 1
           xroom += 1
-          player.reset(64,640)
+          player.reset(64,self.rect.y)
         if pygame.sprite.spritecollide(self, leftexit_group, False):
           game_over = 1
           xroom -= 1
-          player.reset(64,640)
+          player.reset(704,self.rect.y)
       
 
 
@@ -174,7 +173,7 @@ class Player():
       self.rect.y += dy
   #draw player onto screen
     elif game_over == -1:
-      player.reset(64,640)
+      player.reset(self.respawnPoint[0],self.respawnPoint[1])
       game_over = 0
     DISPLAYSURF.blit(self.image, self.rect)
     return [game_over,xroom,yroom]
@@ -287,6 +286,9 @@ class World():
             if tile == "lx":
               leftexit = LeftExit(col_count * tile_size, row_count * tile_size)
               leftexit_group.add(leftexit)
+            if tile == "cz":
+              checkpoint = Checkpoint(col_count * tile_size, row_count * tile_size)
+              checkpoint_group.add(checkpoint)
           col_count += 1
         row_count += 1
 
@@ -369,6 +371,16 @@ class LeftExit(pygame.sprite.Sprite):
     self.rect.x = x 
     self.rect.y = y
 
+class Checkpoint(pygame.sprite.Sprite):
+  def __init__(self,x,y):
+    pygame.sprite.Sprite.__init__(self)
+    pygame.sprite.Sprite.__init__(self)
+    img = pygame.image.load("checkpoint.png")
+    self.image = pygame.transform.scale(img, (tile_size,tile_size*2))
+    self.rect = self.image.get_rect()
+    self.rect.x = x 
+    self.rect.y = y
+  
 def getLevel(zonen,level_coords):
     if level_coords == [0,1]:
       world_data = [
@@ -394,7 +406,7 @@ def getLevel(zonen,level_coords):
           ["0d",0,0,0,0,0,0,0,0,"0a",0,0,0,0,"0a","0a","0a","0a","0a","0a","0a","0a","0a","0p"],
           ["0d",0,0,0,0,0,"0a","0a","0a","s1","s1","s1","s1","s1","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
           ["0d",0,0,0,0,"0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
-          ["0d",0,0,0,"0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
+          ["0d",0,"c",0,"0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"],
           ["0t","0a","0a","0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"]
           ]
     elif level_coords == [0,2]:
@@ -518,6 +530,7 @@ topexit_group = pygame.sprite.Group()
 bottomexit_group = pygame.sprite.Group()
 rightexit_group = pygame.sprite.Group()
 leftexit_group = pygame.sprite.Group()
+checkpoint_group = pygame.sprite.Group()
 
 def draw_grid():
   for line in range(0,25):
@@ -565,6 +578,7 @@ while True:
     rightexit_group = pygame.sprite.Group()
     leftexit_group = pygame.sprite.Group()
     bottomexit_group = pygame.sprite.Group()
+    checkpoint_group = pygame.sprite.Group()
     world_data = getLevel(zonen,level_coords)
     world = World(world_data)
     print("Level complete in",round(levelTime/fps,1),"seconds")
