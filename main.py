@@ -1,17 +1,22 @@
+#To-Do: Add Items, Add the Ability to Damage Entities
+#music cause its too big for github: https://drive.google.com/file/d/1b6w6JaQoNO0F1eqwfIXyS1vjeDIy_RRw/view?usp=share_link
+
 import pygame, sys
 from pygame.locals import QUIT
+from pygame import mixer
 
+pygame.mixer.pre_init(33100, -16, 2, 512)
 pygame.init()
+mixer.init() #bruv
 
 clock = pygame.time.Clock()
 fps = 60
 
 #define variables
+pygame.mixer.music.load("area0music.mp3")
+pygame.mixer.music.play(1,0.0,0)
 tile_size = 32
 game_over = 0
-xroom = 0
-yroom = 2
-zonen = 0
 levelTime = 0
 
 DISPLAYSURF = pygame.display.set_mode((768, 768))
@@ -38,8 +43,8 @@ enemyMoving = False
 e1posx = 0
 
 #Setting Map Coords
-xroom = 1
-yroom = 2
+xroom = 0
+yroom = 1
 level_coords = [xroom,yroom]
 zonen = 0
 
@@ -57,6 +62,7 @@ class Player():
     self.vel_y = 0
     self.jumped = False
     self.canJump = 0
+    self.health = 100
 
   def reset(self, x, y):
     img = pygame.image.load("player1.png")
@@ -71,6 +77,8 @@ class Player():
     self.vel_y = 0
     self.jumped = False
     self.canJump = 0
+    self.health = 100
+    self.hasImmunity = False
 
   def update(self, game_over, xroom, yroom):
     
@@ -122,21 +130,40 @@ class Player():
 
         #check for collision with enemies & spikes
         if pygame.sprite.spritecollide(self, enemy1_group, False):
-          game_over = -1
+          if self.hasImmunity == False:
+            self.health -= 25
+            print(self.health)
+            self.hasImmunity = True
         if pygame.sprite.spritecollide(self, spike_group, False):
-          game_over = -1
+          if self.hasImmunity == False:
+            self.health -= 50
+            print(self.health)
+            self.hasImmunity = True
+        if not pygame.sprite.spritecollide(self, spike_group, False) and not pygame.sprite.spritecollide(self, enemy1_group, False):
+          self.hasImmunity = False
         if pygame.sprite.spritecollide(self, jumpring_group, False):
           self.canJump = 1
         if pygame.sprite.spritecollide(self, topexit_group, False):
           game_over = 1
           yroom += 1
           player.reset(64,640)
+        if pygame.sprite.spritecollide(self, bottomexit_group, False):
+          game_over = 1
+          yroom -= 1
+          player.reset(64,640)
         if pygame.sprite.spritecollide(self, rightexit_group, False):
           game_over = 1
           xroom += 1
           player.reset(64,640)
+        if pygame.sprite.spritecollide(self, leftexit_group, False):
+          game_over = 1
+          xroom -= 1
+          player.reset(64,640)
       
 
+
+        if self.health <= 0:
+          game_over = -1
 
       
 
@@ -251,9 +278,15 @@ class World():
             if tile == "tx":
               topexit = TopExit(col_count * tile_size, row_count * tile_size)
               topexit_group.add(topexit)
+            if tile == "bx":
+              bottomexit = BottomExit(col_count * tile_size, row_count * tile_size)
+              bottomexit_group.add(bottomexit)
             if tile == "rx":
               rightexit = RightExit(col_count * tile_size, row_count * tile_size)
               rightexit_group.add(rightexit)
+            if tile == "lx":
+              leftexit = LeftExit(col_count * tile_size, row_count * tile_size)
+              leftexit_group.add(leftexit)
           col_count += 1
         row_count += 1
 
@@ -271,21 +304,15 @@ class Enemy(pygame.sprite.Sprite):
     self.rect.x = x
     self.rect.y = y
     self.move_direction = 4
-    self.move_counter = 0
     self.width = 32
     self.height = 16
     
   def update(self):
     self.rect.x += self.move_direction
-    self.move_counter += 1
-    if abs(self.move_counter) > 30:
-      self.move_direction *= -1
-      self.move_counter *= -1
     for tile in world.tile_list:
           #check for collision in x direction
         if tile[1].colliderect(self.rect.x + self.move_direction, self.rect.y, self.width, self.height):
           self.move_direction *= -1
-          self.move_counter *= -1
 
 
 
@@ -317,7 +344,23 @@ class TopExit(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.x = x 
     self.rect.y = y
+class BottomExit(pygame.sprite.Sprite):
+  def __init__(self,x,y):
+    pygame.sprite.Sprite.__init__(self)
+    img = pygame.image.load("verticalexit.png")
+    self.image = pygame.transform.scale(img, (2*tile_size,tile_size))
+    self.rect = self.image.get_rect()
+    self.rect.x = x 
+    self.rect.y = y
 class RightExit(pygame.sprite.Sprite):
+  def __init__(self,x,y):
+    pygame.sprite.Sprite.__init__(self)
+    img = pygame.image.load("horizontalexit.png")
+    self.image = pygame.transform.scale(img, (tile_size,tile_size*2))
+    self.rect = self.image.get_rect()
+    self.rect.x = x 
+    self.rect.y = y
+class LeftExit(pygame.sprite.Sprite):
   def __init__(self,x,y):
     pygame.sprite.Sprite.__init__(self)
     img = pygame.image.load("horizontalexit.png")
@@ -412,6 +455,33 @@ def getLevel(zonen,level_coords):
       world_data = [
           ["0s","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0r"],
           ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"rx"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a","0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,"0a",0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,"0a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,"0a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,"0a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,"s1","s1",0,0,"0p","s1",0,0,0,0,"j",0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,"0a","0a",0,0,0,0,0,"0a","0a",0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
+          ["0d",0,0,0,"j",0,0,"s1","s1",0,0,"j",0,0,0,0,0,0,"s1",0,0,0,0,"0p"],
+          ["0d",0,0,0,"s1",0,0,0,0,0,0,"s1",0,0,0,0,0,"0a","0a",0,0,0,0,"0p"],
+          ["0d",0,0,0,"0a",0,0,0,0,0,0,"0a",0,0,0,0,0,0,"e1",0,0,0,0,"0p"],
+          ["0t","0a","0a","0a","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p","0p"]
+          ]
+    elif level_coords == [2,3]:
+      world_data = [
+          ["0s","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0c","0r"],
+          ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
           ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
           ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
           ["0d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"0p"],
@@ -445,7 +515,9 @@ enemy1_group = pygame.sprite.Group()
 spike_group = pygame.sprite.Group()
 jumpring_group = pygame.sprite.Group()
 topexit_group = pygame.sprite.Group()
+bottomexit_group = pygame.sprite.Group()
 rightexit_group = pygame.sprite.Group()
+leftexit_group = pygame.sprite.Group()
 
 def draw_grid():
   for line in range(0,25):
