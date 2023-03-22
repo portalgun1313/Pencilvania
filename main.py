@@ -563,6 +563,8 @@ while True:
     jumpring_group = pygame.sprite.Group()
     topexit_group = pygame.sprite.Group()
     rightexit_group = pygame.sprite.Group()
+    leftexit_group = pygame.sprite.Group()
+    bottomexit_group = pygame.sprite.Group()
     world_data = getLevel(zonen,level_coords)
     world = World(world_data)
     print("Level complete in",round(levelTime/fps,1),"seconds")
