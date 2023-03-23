@@ -157,7 +157,7 @@ class Player():
         if pygame.sprite.spritecollide(self, leftexit_group, False):
           game_over = 1
           xroom -= 1
-          player.reset(704,self.rect.y)
+          player.reset(640 ,self.rect.y)
       
 
 
