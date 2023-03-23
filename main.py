@@ -694,6 +694,9 @@ rightexit_group = pygame.sprite.Group()
 leftexit_group = pygame.sprite.Group()
 checkpoint_group = pygame.sprite.Group()
 
+if True:
+  print("true")
+
 def draw_grid():
   for line in range(0,25):
     pygame.draw.line(DISPLAYSURF,(255,255,255), (0, line * tile_size),(768, line * tile_size))
