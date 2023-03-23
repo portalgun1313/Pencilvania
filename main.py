@@ -61,6 +61,11 @@ class Player():
     self.jumped = False
     self.canJump = 0
     self.health = 100
+    self.maxHealth = 100
+    self.damage = 25
+    self.canAttack = True
+    self.attacking = False
+    self.respawnPoint = [64,64,1,2]
 
   def reset(self, x, y):
     img = pygame.image.load("player1.png")
@@ -75,9 +80,8 @@ class Player():
     self.vel_y = 0
     self.jumped = False
     self.canJump = 0
-    self.health = 100
     self.hasImmunity = False
-    self.respawnPoint = [64,704]
+    self.attacking = False
 
   def update(self, game_over, xroom, yroom):
     
@@ -97,6 +101,11 @@ class Player():
         self.vel_x = -12
       if key[pygame.K_d]:
         self.vel_x = 12
+      if key[pygame.K_x] and self.attacking == False and self.canAttack == True:
+        self.canAttack = False
+        self.attacking = True
+      if not key[pygame.K_x]:
+        self.canAttack = True
   
         #acceleration stuff too cool for you to understand
       self.vel_x *= 0.5
@@ -128,6 +137,8 @@ class Player():
           
 
         #check for collision with enemies & spikes
+        if pygame.sprite.spritecollide(self,checkpoint_group,False):
+          self.respawnPoint = [self.rect.x,self.rect.y,xroom,yroom]
         if pygame.sprite.spritecollide(self, enemy1_group, False):
           if self.hasImmunity == False:
             self.health -= 25
@@ -162,7 +173,11 @@ class Player():
 
 
         if self.health <= 0:
-          game_over = -1
+          game_over = 1
+          xroom = self.respawnPoint[2]
+          yroom = self.respawnPoint[3]
+          player.reset(self.respawnPoint[0],self.respawnPoint[1])
+          self.health = self.maxHealth
 
       
 
@@ -172,8 +187,7 @@ class Player():
       self.rect.x += dx
       self.rect.y += dy
   #draw player onto screen
-    elif game_over == -1:
-      player.reset(self.respawnPoint[0],self.respawnPoint[1])
+    elif game_over == 1:
       game_over = 0
     DISPLAYSURF.blit(self.image, self.rect)
     return [game_over,xroom,yroom]
@@ -301,13 +315,14 @@ class World():
 class Enemy(pygame.sprite.Sprite):
   def __init__(self,x,y):
     pygame.sprite.Sprite.__init__(self)
+    self.health = 50
     self.image = pygame.image.load("slime1.png")
     self.rect = self.image.get_rect()
     self.rect.x = x
     self.rect.y = y
-    self.move_direction = 4
     self.width = 32
     self.height = 16
+    self.move_direction = 4
     
   def update(self):
     self.rect.x += self.move_direction
@@ -315,6 +330,12 @@ class Enemy(pygame.sprite.Sprite):
           #check for collision in x direction
         if tile[1].colliderect(self.rect.x + self.move_direction, self.rect.y, self.width, self.height):
           self.move_direction *= -1
+    if player.attacking == True and player.rect.colliderect(self.rect.x - self.width, self.rect.y - self.height, self.width*2, self.height*2):
+      self.health -= player.damage
+      player.attacking = False
+      print(self.health)
+    if self.health <= 0:
+      self.rect.y += 2000
 
 
 
