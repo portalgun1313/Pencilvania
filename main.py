@@ -65,7 +65,10 @@ class Player():
     self.damage = 12.5
     self.canAttack = True
     self.attacking = False
+    self.jumpHeight = 12
     self.respawnPoint = [64,704,0,1]
+    self.inventory = []
+    self.powerUps = []
 
   def reset(self, x, y):
     img = pygame.image.load("player1.png")
@@ -87,12 +90,17 @@ class Player():
     
     if game_over == 0: 
     
+      if player.health > player.maxHealth:
+        player.health = player.maxHealth
       
+      if self.powerUps.count("rubbereraser") != 0:
+        self.jumpHeight = 13
+        self.maxHealth = 110
       
       #get key presses
       key = pygame.key.get_pressed()
       if key[pygame.K_SPACE] and self.jumped == False and self.canJump == 1:
-        self.vel_y = -12
+        self.vel_y = self.jumpHeight * -1
         self.jumped = True
         self.canJump = 0
       if not key[pygame.K_SPACE]:
@@ -146,7 +154,7 @@ class Player():
             self.hasImmunity = True
         if pygame.sprite.spritecollide(self, spike_group, False):
           if self.hasImmunity == False:
-            self.health -= 50
+            self.health -= 75
             print(self.health)
             self.hasImmunity = True
         if not pygame.sprite.spritecollide(self, spike_group, False) and not pygame.sprite.spritecollide(self, enemy1_group, False):
@@ -169,6 +177,9 @@ class Player():
           game_over = 1
           xroom -= 1
           player.reset(640 ,self.rect.y)
+        if pygame.sprite.spritecollide(self, rubbereraserupgrade_group, True):
+          self.powerUps.append("rubbereraser")
+          print(self.powerUps)
       
 
 
@@ -303,6 +314,9 @@ class World():
             if tile == "cz":
               checkpoint = Checkpoint(col_count * tile_size, row_count * tile_size)
               checkpoint_group.add(checkpoint)
+            if tile == "rubbereraserupgrade":
+              rubbereraserupgrade = RubberEraserUpgradeItem(col_count * tile_size, row_count * tile_size)
+              rubbereraserupgrade_group.add(rubbereraserupgrade)
           col_count += 1
         row_count += 1
 
@@ -398,6 +412,16 @@ class Checkpoint(pygame.sprite.Sprite):
     pygame.sprite.Sprite.__init__(self)
     img = pygame.image.load("checkpoint.png")
     self.image = pygame.transform.scale(img, (tile_size,tile_size))
+    self.rect = self.image.get_rect()
+    self.rect.x = x 
+    self.rect.y = y
+
+class RubberEraserUpgradeItem(pygame.sprite.Sprite):
+  def __init__(self,x,y):
+    pygame.sprite.Sprite.__init__(self)
+    pygame.sprite.Sprite.__init__(self)
+    img = pygame.image.load("rubbereraserupgrade.png")
+    self.image = pygame.transform.scale(img, (tile_size*2,tile_size*2))
     self.rect = self.image.get_rect()
     self.rect.x = x 
     self.rect.y = y
@@ -985,13 +1009,22 @@ bottomexit_group = pygame.sprite.Group()
 rightexit_group = pygame.sprite.Group()
 leftexit_group = pygame.sprite.Group()
 checkpoint_group = pygame.sprite.Group()
+rubbereraserupgrade_group = pygame.sprite.Group()
 
 def draw_grid():
   for line in range(0,25):
     pygame.draw.line(DISPLAYSURF,(255,255,255), (0, line * tile_size),(768, line * tile_size))
     pygame.draw.line(DISPLAYSURF,(255,255,255), (line * tile_size, 0),(line * tile_size, 768))
 
-
+def healthUI(health):
+  healthbar = pygame.image.load("healthbar.png")
+  healthbar = pygame.transform.scale(healthbar,(health, 16))
+  DISPLAYSURF.blit(healthbar,(3,3))
+def maxHealthUI(maxhealth):
+  maxhealthframe = pygame.image.load("healthbar.png")
+  maxhealthframe = pygame.transform.scale(maxhealthframe,(maxhealth+6, 22))
+  maxhealthframe_rect = maxhealthframe.get_rect()
+  pygame.draw.rect(DISPLAYSURF,(0,0,0), maxhealthframe_rect, maxhealth)
 
 
 
@@ -1020,6 +1053,7 @@ while True:
   leftexit_group.draw(DISPLAYSURF)
   bottomexit_group.draw(DISPLAYSURF)
   checkpoint_group.draw(DISPLAYSURF)
+  rubbereraserupgrade_group.draw(DISPLAYSURF)
 
   player_data = player.update(game_over,xroom,yroom)
   game_over = player_data[0]
@@ -1035,12 +1069,14 @@ while True:
     leftexit_group = pygame.sprite.Group()
     bottomexit_group = pygame.sprite.Group()
     checkpoint_group = pygame.sprite.Group()
+    rubbereraserupgrade_group = pygame.sprite.Group()
     world_data = getLevel(zonen,level_coords)
     world = World(world_data)
     game_over = 0
   
   world.draw()
-
+  maxHealthUI(player.maxHealth)
+  healthUI(player.health)
   
   
   for event in pygame.event.get():
