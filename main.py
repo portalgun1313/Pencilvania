@@ -32,6 +32,9 @@ def drawText(text,font,text_color,x,y):
   img = font.render(text,True, text_color)
   DISPLAYSURF.blit(img,(x,y))
 
+#load sounds
+death_fx = pygame.mixer.Sound("deathsound.mp3")
+death_fx.set_volume(3)
 #load images
 enemy_image = pygame.image.load("enemy1.png")
 enemy_image = pygame.transform.scale(enemy_image,(100,100))
@@ -235,7 +238,7 @@ class Player():
           yroom = self.respawnPoint[3]
           self.deathCount += 1
           player.reset(self.respawnPoint[0],self.respawnPoint[1])
-
+          death_fx.play()
       
 
           
