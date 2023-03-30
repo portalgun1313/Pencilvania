@@ -23,10 +23,14 @@ DISPLAYSURF = pygame.display.set_mode((768, 768))
 pygame.display.set_caption('Pencilvania')
 
 #define font thingamajigs
-font_victory = pygame.font.SysFont('Arial',69)
+font_victory = pygame.font.SysFont('JMH Typewriter Font',30)
 
 #define COLORS (not colours)
 green = (200,255,127)
+
+def drawText(text,font,text_color,x,y):
+  img = font.render(text,True, text_color)
+  DISPLAYSURF.blit(img,(x,y))
 
 #load images
 enemy_image = pygame.image.load("enemy1.png")
@@ -1957,8 +1961,22 @@ while True:
   maxHealthUI(player.maxHealth)
   healthUI(player.health)
   if player.winnerWinnerChickenDinner == 1:
-    pass
-  
+    if player.powerUps.count("rubbereraser") != 0 and player.deathCount < 150:
+      points = round((100-player.deathCount))+50
+    elif player.deathCount < 150 and player.powerUps.count("rubbereraser") == 0:
+      points = round((100-player.deathCount))
+    else:
+      points = 0
+    if player.deathCount == 0 and player.powerUps.count("rubbereraser") != 0:
+      drawText("Perfect run!",font_victory,green,200,200)
+    elif player.deathCount == 0 and player.powerUps.count("rubbereraser") == 0:
+      drawText("Well done! But you forgot an item along the way.",font_victory,green,50,200)
+      drawText("Try again and find it.",font_victory,green,50,250)
+    drawText("Points:",font_victory,green,50,150) 
+    drawText(str(points),font_victory,green,125,150) 
+    drawText("Thank you for playing Pencilvaina!",font_victory,green,50,300)
+    drawText("Game, artwork, and concepts all made by",font_victory,green,50,350)
+    drawText("Robert Bunker and Carson Jurgaitis",font_victory,green,50,400)
   for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
