@@ -51,6 +51,15 @@ zeroc_tile = pygame.image.load("0c.png")
 zeror_tile = pygame.image.load("0r.png")
 zeros_tile = pygame.image.load("0s.png")
 zerop_tile = pygame.image.load("0p.png")
+onea_tile = pygame.image.load("1a.png")
+oneb_tile = pygame.image.load("1b.png")
+onec_tile = pygame.image.load("1c.png")
+oned_tile = pygame.image.load("1d.png")
+onee_tile = pygame.image.load("1e.png")
+onef_tile = pygame.image.load("1f.png")
+oneg_tile = pygame.image.load("1g.png")
+oneh_tile = pygame.image.load("1h.png")
+onei_tile = pygame.image.load("1i.png")
 thred_tile = pygame.image.load("world3_07.png")
 threu_tile = pygame.image.load("world3_05.png")
 threl_tile = pygame.image.load("world3_06.png")
@@ -61,10 +70,10 @@ enemyMoving = False
 e1posx = 0
 
 #Setting Map Coords (starting coords are 1,-5)
-xroom = 1
-yroom = -5
+xroom = -3
+yroom = -6
 level_coords = [xroom,yroom]
-zonen = 0
+zonen = 1
 
 class Player():
   def __init__(self,x,y):
@@ -88,7 +97,7 @@ class Player():
     self.jumpHeight = 12
     self.respawnPoint = [64,704,1,5]
     self.inventory = []
-    self.powerUps = []
+    self.powerUps = ["rubbereraser"]
     self.coinCount = 0
     self.deathCount = 0
     self.winnerWinnerChickenDinner = 0
@@ -173,18 +182,20 @@ class Player():
           self.health = self.maxHealth
         if pygame.sprite.spritecollide(self, enemy1_group, False):
           if self.hasImmunity == False:
-            self.health -= 25
+            self.health -= (25+10*zonen)
             print(self.health)
             self.hasImmunity = True
         if pygame.sprite.spritecollide(self, spike_group, False):
           if self.hasImmunity == False:
-            self.health -= 75
+            self.health -= (75+25*zonen)
             print(self.health)
             self.hasImmunity = True
         if not pygame.sprite.spritecollide(self, spike_group, False) and not pygame.sprite.spritecollide(self, enemy1_group, False):
           self.hasImmunity = False
         if pygame.sprite.spritecollide(self, jumpring_group, False):
           self.canJump = 1
+        if not pygame.sprite.spritecollide(self, jumpring_group, False) and not tile[1].colliderect(self.rect.x, self.rect.y + self.vel_y, self.width, self.height) and dy != 0:
+          self.canJump = 0
         if pygame.sprite.spritecollide(self, topexit_group, False):
           game_over = 1
           yroom += 1
@@ -333,6 +344,69 @@ class World():
               img_rect.y = row_count * tile_size
               tile = (img, img_rect)
               self.tile_list.append(tile)
+            if tile == "1a":
+              img = pygame.transform.scale(onea_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1b":
+              img = pygame.transform.scale(oneb_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1c":
+              img = pygame.transform.scale(onec_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1d":
+              img = pygame.transform.scale(oned_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1e":
+              img = pygame.transform.scale(onee_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1f":
+              img = pygame.transform.scale(onef_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1g":
+              img = pygame.transform.scale(oneg_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1h":
+              img = pygame.transform.scale(oneh_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
+            if tile == "1i":
+              img = pygame.transform.scale(onei_tile, (tile_size,tile_size))
+              img_rect = img.get_rect()
+              img_rect.x = col_count * tile_size
+              img_rect.y = row_count * tile_size
+              tile = (img, img_rect)
+              self.tile_list.append(tile)
             if tile == "3b":
               img = pygame.transform.scale(threb_tile, (tile_size,tile_size))
               img_rect = img.get_rect()
@@ -375,7 +449,13 @@ class World():
               img_rect.y = row_count * tile_size
               tile = (img, img_rect)
             if tile == "s1":
-              spike = Spike(col_count * tile_size, row_count * tile_size + 11)
+              spike = Spike(col_count * tile_size, row_count * tile_size + 11,1)
+              spike_group.add(spike)
+            if tile == "s2":
+              spike = Spike(col_count * tile_size, row_count * tile_size + 11,2)
+              spike_group.add(spike)
+            if tile == "s3":
+              spike = Spike(col_count * tile_size, row_count * tile_size + 11,3)
               spike_group.add(spike)
             if tile == "e1":
               enemy1 = Enemy(col_count * tile_size, row_count * tile_size + 15)
@@ -442,9 +522,14 @@ class Enemy(pygame.sprite.Sprite):
 
 
 class Spike(pygame.sprite.Sprite):
-  def __init__(self,x,y):
+  def __init__(self,x,y,variant):
     pygame.sprite.Sprite.__init__(self)
-    img = pygame.image.load("spike1.png")
+    if variant == 1:
+      img = pygame.image.load("spike1.png")
+    elif variant == 2:
+      img = pygame.image.load("spike2.png")
+    elif variant == 3:
+      img = pygame.image.load("spike3.png")
     self.image = pygame.transform.scale(img, (tile_size,tile_size // 1.5))
     self.rect = self.image.get_rect()
     self.rect.x = x
@@ -1869,6 +1954,62 @@ def getLevel(zonen,level_coords):
           ["3r",0,0,0,0,0,0,0,"3b","3b","3b",0,0,0,0,0,0,0,0,0,0,0,0,0],
           ["3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u","3u"]
           ]
+    elif level_coords == [-3,-6]:
+      zonen = 1
+      world_data = [
+          ["1e","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","tx",0,"1e"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"j","1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1g","1a","1a","1a","1a","1a","1a","1a","1e"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,"1a","1c","1c","1c","1c","1c","1c","1c","1c","1e"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,"1g","1f",0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,"1h","1i",0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,"1a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d","1a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"rx"],
+          ["1d",0,0,0,0,0,"1a",0,0,0,0,"cz",0,0,'s3',0,0,0,0,0,0,0,0,0],
+          ["1e","1a","1a","1a","1a","1a","1e","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1e"]
+        ]
+    elif level_coords == [-3,-5]:
+        zonen = 1
+        world_data = [
+          ["1e","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","1c","tx",0,"1e"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"j","1b"],
+          ["1d",0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1g","1a","1a","1a","1a","1a","1a","1a","1e"],
+          ["1d",0,0,0,0,"1a",0,0,0,"s3","s3",0,0,0,0,"1h","1c","1c","1c","1c","1c","1c","1c","1e"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1e","1f",0,0,0,0,0,0,0,"1g","1f",0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1e","1i",0,0,0,0,0,0,0,"1h","1i",0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,"j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d","s3","s3","s3",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,"s3",0,0,"1a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,"s3",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,"s3",0,"j","j",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d",0,0,"s3",0,0,"s3",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1d","e1","e1","1a","s3","s3","1a",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"1b"],
+          ["1e","1a","1a","1e","1a","1a","1e","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","1a","bx",0,"1e"]
+        ]
     
     return [zonen, world_data]
 
@@ -1906,6 +2047,8 @@ def maxHealthUI(maxhealth):
 def drawBackground(zonen):
   if zonen == 0:
     background = pygame.image.load("area0background.png")
+  elif zonen == 1:
+    background = pygame.image.load("area1background.png")
   elif zonen == 3:
     background = pygame.image.load("area3background.png")
   background = pygame.transform.scale(background, (768,768))
